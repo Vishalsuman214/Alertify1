@@ -15,7 +15,7 @@ _reminders_collection = None
 def get_client():
     global _client
     if _client is None:
-        MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
+        MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
         # Use ServerApi for MongoDB Atlas compatibility and disable SSL verification for Vercel
         _client = MongoClient(MONGO_URI, server_api=ServerApi('1'), serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1, tlsAllowInvalidCertificates=True)
     return _client
