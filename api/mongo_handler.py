@@ -4,21 +4,42 @@ import os
 import uuid
 import datetime
 
-# MongoDB connection
-MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
-try:
-    # Use TLS with extended timeouts and certificate validation bypass for Vercel compatibility
-    client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True, tlsAllowInvalidHostnames=True, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
-    # Test the connection
-    client.admin.command('ping')
-    print("MongoDB connection successful")
-except Exception as e:
-    print(f"MongoDB connection failed: {e}")
-    # For Vercel deployment, raise error if Atlas fails since local MongoDB is not available
-    raise e
-db = client['reminder_app']
-users_collection = db['users']
-reminders_collection = db['reminders']
+# Lazy MongoDB connection
+_client = None
+_db = None
+_users_collection = None
+_reminders_collection = None
+
+def get_client():
+    global _client
+    if _client is None:
+        MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
+        # Use TLS with extended timeouts and certificate validation bypass for Vercel compatibility
+        _client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True, tlsAllowInvalidHostnames=True, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
+    return _client
+
+def get_db():
+    global _db
+    if _db is None:
+        _db = get_client()['reminder_app']
+    return _db
+
+def get_users_collection():
+    global _users_collection
+    if _users_collection is None:
+        _users_collection = get_db()['users']
+    return _users_collection
+
+def get_reminders_collection():
+    global _reminders_collection
+    if _reminders_collection is None:
+        _reminders_collection = get_db()['reminders']
+    return _reminders_collection
+
+# For backward compatibility, assign to module level variables
+db = get_db()
+users_collection = get_users_collection()
+reminders_collection = get_reminders_collection()
 
 def read_users():
     return list(users_collection.find())
