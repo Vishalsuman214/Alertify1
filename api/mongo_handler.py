@@ -29,7 +29,6 @@ def get_client():
                 MONGO_URI,
                 server_api=ServerApi("1"),
                 tls=True,
-                tlsAllowInvalidCertificates=True,  # ⚠️ disables cert validation (temporary)
                 connectTimeoutMS=30000,
                 socketTimeoutMS=30000,
                 maxPoolSize=1,
