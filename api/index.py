@@ -10,7 +10,7 @@ from apscheduler.executors.asyncio import AsyncIOExecutor
 from flask import Flask, jsonify
 
 from api.auth import User, mail
-from api.mongo_handler import get_user_by_id
+from api.supabase_handler import get_user_by_id
 from api.email_service import check_and_send_reminders
 
 # Load environment variables from .env file if it exists

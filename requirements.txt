@@ -6,5 +6,7 @@ apscheduler
 email-validator
 python-dotenv
 gunicorn
-pymongo
 sendgrid
+flask-sqlalchemy
+psycopg2-binary
+supabase
