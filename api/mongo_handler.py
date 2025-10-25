@@ -1,5 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 import os
 import uuid
 import datetime
@@ -14,12 +15,8 @@ def get_client():
     global _client
     if _client is None:
         MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
-        # Try without TLS for Vercel compatibility - some serverless environments have issues with TLS
-        try:
-            _client = MongoClient(MONGO_URI, ssl=False, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
-        except Exception:
-            # Fallback to TLS if ssl=False doesn't work
-            _client = MongoClient(MONGO_URI, tls=True, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
+        # Use ServerApi for MongoDB Atlas compatibility
+        _client = MongoClient(MONGO_URI, server_api=ServerApi('1'), serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
     return _client
 
 def get_db():
