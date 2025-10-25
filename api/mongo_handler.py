@@ -7,7 +7,7 @@ import datetime
 # MongoDB connection
 MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
 try:
-    from pymongo import ssl
+    import ssl
     client = MongoClient(MONGO_URI, tls=True, serverSelectionTimeoutMS=5000, maxPoolSize=1, ssl_cert_reqs=ssl.CERT_NONE)
     # Test the connection
     client.admin.command('ping')
