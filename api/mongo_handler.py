@@ -7,8 +7,7 @@ import datetime
 # MongoDB connection
 MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
 try:
-    import ssl
-    client = MongoClient(MONGO_URI, tls=True, serverSelectionTimeoutMS=5000, maxPoolSize=1, ssl_cert_reqs=ssl.CERT_NONE)
+    client = MongoClient(MONGO_URI, tls=True, serverSelectionTimeoutMS=5000, maxPoolSize=1)
     # Test the connection
     client.admin.command('ping')
     print("MongoDB connection successful")
