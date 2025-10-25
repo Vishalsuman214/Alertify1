@@ -16,7 +16,7 @@ from api.email_service import check_and_send_reminders
 # Load environment variables from .env file if it exists
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(encoding='utf-8')
 except ImportError:
     pass  # python-dotenv not installed, skip loading .env
 
