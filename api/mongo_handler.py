@@ -6,7 +6,7 @@ import datetime
 
 # MongoDB connection
 MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
-client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True)
+client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True, serverSelectionTimeoutMS=5000)
 db = client['reminder_app']
 users_collection = db['users']
 reminders_collection = db['reminders']
