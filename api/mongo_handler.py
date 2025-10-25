@@ -7,8 +7,13 @@ import datetime
 # MongoDB connection
 MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
 try:
-    # Use MongoDB-specific TLS parameters for better compatibility
-    client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True, tlsAllowInvalidHostnames=True, serverSelectionTimeoutMS=5000, maxPoolSize=1)
+    # Try without TLS first for Vercel compatibility
+    if 'mongodb+srv://' in MONGO_URI:
+        # For Atlas SRV connections, try without TLS
+        client = MongoClient(MONGO_URI.replace('mongodb+srv://', 'mongodb://'), serverSelectionTimeoutMS=5000, maxPoolSize=1)
+    else:
+        # For standard connections, try without TLS
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, maxPoolSize=1)
     # Test the connection
     client.admin.command('ping')
     print("MongoDB connection successful")
