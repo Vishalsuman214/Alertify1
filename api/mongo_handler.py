@@ -25,17 +25,11 @@ def get_client():
         )
 
         try:
-            # Create a relaxed SSL context for Vercel compatibility
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE  # ⚠️ disables cert validation (temporary)
-            context.options |= ssl.OP_LEGACY_SERVER_CONNECT  # allow legacy handshakes
-
             _client = MongoClient(
                 MONGO_URI,
                 server_api=ServerApi("1"),
-                ssl=True,
-                ssl_context=context,
+                tls=True,
+                tlsAllowInvalidCertificates=True,  # ⚠️ disables cert validation (temporary)
                 connectTimeoutMS=30000,
                 socketTimeoutMS=30000,
                 maxPoolSize=1,
