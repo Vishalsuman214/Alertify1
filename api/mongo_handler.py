@@ -4,7 +4,7 @@ import os
 import uuid
 import datetime
 
-# Lazy MongoDB connection
+# Lazy MongoDB connection - no global connections established at import time
 _client = None
 _db = None
 _users_collection = None
@@ -36,20 +36,17 @@ def get_reminders_collection():
         _reminders_collection = get_db()['reminders']
     return _reminders_collection
 
-# For backward compatibility, assign to module level variables
-db = get_db()
-users_collection = get_users_collection()
-reminders_collection = get_reminders_collection()
+# Remove global assignments to prevent connection at import time
 
 def read_users():
-    return list(users_collection.find())
+    return list(get_users_collection().find())
 
 def write_users(users):
     # This function is not needed in MongoDB, but kept for compatibility
     pass
 
 def add_user(email, password):
-    if users_collection.find_one({'email': email}):
+    if get_users_collection().find_one({'email': email}):
         return None
     user_id = str(uuid.uuid4())
     password_hash = generate_password_hash(password)
@@ -66,52 +63,52 @@ def add_user(email, password):
         'email_credentials': '',
         'app_password': ''
     }
-    users_collection.insert_one(new_user)
+    get_users_collection().insert_one(new_user)
     return user_id
 
 def get_user_by_email(email):
-    return users_collection.find_one({'email': email})
+    return get_users_collection().find_one({'email': email})
 
 def get_user_by_id(user_id):
-    return users_collection.find_one({'id': user_id})
+    return get_users_collection().find_one({'id': user_id})
 
 def update_user_password(user_id, new_password_hash):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'id': user_id},
         {'$set': {'password_hash': new_password_hash}}
     )
     return result.modified_count > 0
 
 def update_user_profile_picture(user_id, filename):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'id': user_id},
         {'$set': {'profile_picture': filename}}
     )
     return result.modified_count > 0
 
 def update_user_bio(user_id, bio):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'id': user_id},
         {'$set': {'bio': bio}}
     )
     return result.modified_count > 0
 
 def update_user_email_credentials(user_id, email, app_password):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'id': user_id},
         {'$set': {'email_credentials': email, 'app_password': app_password}}
     )
     return result.modified_count > 0
 
 def update_user_reminder_email(user_id, email):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'id': user_id},
         {'$set': {'reminder_email': email}}
     )
     return result.modified_count > 0
 
 def update_user_reminder_app_password(user_id, app_password):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'id': user_id},
         {'$set': {'reminder_app_password': app_password}}
     )
@@ -134,14 +131,14 @@ def generate_reset_token(email):
     return str(uuid.uuid4())
 
 def set_reset_token(user_id, token, expiry):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'id': user_id},
         {'$set': {'reset_token': token, 'reset_token_expiry': str(expiry)}}
     )
     return result.modified_count > 0
 
 def reset_password(token, new_password):
-    result = users_collection.update_one(
+    result = get_users_collection().update_one(
         {'reset_token': token},
         {'$set': {'password_hash': generate_password_hash(new_password), 'reset_token': '', 'reset_token_expiry': ''}}
     )
@@ -149,10 +146,10 @@ def reset_password(token, new_password):
 
 # Reminder functions
 def get_all_reminders():
-    return list(reminders_collection.find())
+    return list(get_reminders_collection().find())
 
 def mark_reminder_completed(reminder_id, completed=True):
-    result = reminders_collection.update_one(
+    result = get_reminders_collection().update_one(
         {'id': str(reminder_id)},
         {'$set': {'is_completed': completed}}
     )
@@ -169,14 +166,14 @@ def add_reminder(user_id, title, description, reminder_time, recipient_email):
         'recipient_email': recipient_email,
         'is_completed': False
     }
-    reminders_collection.insert_one(new_reminder)
+    get_reminders_collection().insert_one(new_reminder)
     return reminder_id
 
 def get_reminders_by_user_id(user_id):
-    return list(reminders_collection.find({'user_id': user_id}))
+    return list(get_reminders_collection().find({'user_id': user_id}))
 
 def get_reminder_by_id(reminder_id):
-    return reminders_collection.find_one({'id': reminder_id})
+    return get_reminders_collection().find_one({'id': reminder_id})
 
 def update_reminder(reminder_id, title=None, description=None, reminder_time=None, recipient_email=None, is_completed=None):
     update_fields = {}
@@ -192,7 +189,7 @@ def update_reminder(reminder_id, title=None, description=None, reminder_time=Non
         update_fields['is_completed'] = is_completed
 
     if update_fields:
-        result = reminders_collection.update_one(
+        result = get_reminders_collection().update_one(
             {'id': reminder_id},
             {'$set': update_fields}
         )
@@ -200,38 +197,38 @@ def update_reminder(reminder_id, title=None, description=None, reminder_time=Non
     return False
 
 def delete_reminder(reminder_id):
-    result = reminders_collection.delete_one({'id': reminder_id})
+    result = get_reminders_collection().delete_one({'id': reminder_id})
     return result.deleted_count > 0
 
 def delete_all_reminders_by_user(user_id):
     # Soft delete all reminders by marking them as deleted
-    result = reminders_collection.update_many(
+    result = get_reminders_collection().update_many(
         {'user_id': user_id, 'is_deleted': {'$ne': True}},
         {'$set': {'is_deleted': True, 'deleted_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
     )
     return result.modified_count
 
 def soft_delete_reminder(reminder_id):
-    result = reminders_collection.update_one(
+    result = get_reminders_collection().update_one(
         {'id': reminder_id},
         {'$set': {'is_deleted': True, 'deleted_at': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
     )
     return result.modified_count > 0
 
 def restore_reminder(reminder_id):
-    result = reminders_collection.update_one(
+    result = get_reminders_collection().update_one(
         {'id': reminder_id},
         {'$unset': {'is_deleted': '', 'deleted_at': ''}}
     )
     return result.modified_count > 0
 
 def get_deleted_reminders_by_user(user_id):
-    return list(reminders_collection.find({'user_id': user_id, 'is_deleted': True}))
+    return list(get_reminders_collection().find({'user_id': user_id, 'is_deleted': True}))
 
 def permanently_delete_reminder(reminder_id):
-    result = reminders_collection.delete_one({'id': reminder_id})
+    result = get_reminders_collection().delete_one({'id': reminder_id})
     return result.deleted_count > 0
 
 def permanently_delete_all_deleted_reminders(user_id):
-    result = reminders_collection.delete_many({'user_id': user_id, 'is_deleted': True})
+    result = get_reminders_collection().delete_many({'user_id': user_id, 'is_deleted': True})
     return result.deleted_count
