@@ -14,8 +14,12 @@ def get_client():
     global _client
     if _client is None:
         MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
-        # Use TLS with extended timeouts and certificate validation bypass for Vercel compatibility
-        _client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True, tlsAllowInvalidHostnames=True, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
+        # Try without TLS for Vercel compatibility - some serverless environments have issues with TLS
+        try:
+            _client = MongoClient(MONGO_URI, ssl=False, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
+        except Exception:
+            # Fallback to TLS if ssl=False doesn't work
+            _client = MongoClient(MONGO_URI, tls=True, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1)
     return _client
 
 def get_db():
