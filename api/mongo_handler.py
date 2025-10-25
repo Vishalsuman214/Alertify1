@@ -7,7 +7,12 @@ import datetime
 # MongoDB connection
 MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
 try:
-    client = MongoClient(MONGO_URI, tls=True, serverSelectionTimeoutMS=5000, maxPoolSize=1)
+    import ssl
+    # Create a custom SSL context for better compatibility with Vercel
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    client = MongoClient(MONGO_URI, tls=True, serverSelectionTimeoutMS=5000, maxPoolSize=1, ssl=ssl_context)
     # Test the connection
     client.admin.command('ping')
     print("MongoDB connection successful")
