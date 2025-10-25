@@ -15,9 +15,33 @@ _reminders_collection = None
 def get_client():
     global _client
     if _client is None:
-        MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
-        # Use ServerApi for MongoDB Atlas compatibility and disable SSL verification for Vercel
-        _client = MongoClient(MONGO_URI, server_api=ServerApi('1'), serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000, maxPoolSize=1, tlsAllowInvalidCertificates=True)
+        from pymongo.errors import ConfigurationError, ConnectionFailure
+        import certifi
+
+        MONGO_URI = os.environ.get(
+            "MONGO_URI",
+            "mongodb://localhost:27017/"
+        )
+
+        try:
+            _client = MongoClient(
+                MONGO_URI,
+                server_api=ServerApi("1"),
+                tls=True,  # ✅ Required for Atlas
+                tlsCAFile=certifi.where(),  # ✅ Fix SSL handshake
+                connectTimeoutMS=30000,
+                socketTimeoutMS=30000,
+                maxPoolSize=1,
+            )
+
+            # Test the connection
+            _client.admin.command("ping")
+            print("✅ MongoDB connection established successfully.")
+
+        except (ConfigurationError, ConnectionFailure) as e:
+            print(f"❌ MongoDB connection failed: {e}")
+            raise e
+
     return _client
 
 def get_db():
