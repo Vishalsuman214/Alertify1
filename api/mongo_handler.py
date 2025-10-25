@@ -6,7 +6,15 @@ import datetime
 
 # MongoDB connection
 MONGO_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
-client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True, serverSelectionTimeoutMS=5000)
+try:
+    client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True, serverSelectionTimeoutMS=5000)
+    # Test the connection
+    client.admin.command('ping')
+    print("MongoDB connection successful")
+except Exception as e:
+    print(f"MongoDB connection failed: {e}")
+    # Fallback to local MongoDB if Atlas fails
+    client = MongoClient('mongodb://localhost:27017/')
 db = client['reminder_app']
 users_collection = db['users']
 reminders_collection = db['reminders']
