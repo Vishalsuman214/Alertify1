@@ -16,6 +16,7 @@ def get_client():
     global _client
     if _client is None:
         from pymongo.errors import ConfigurationError, ConnectionFailure
+        import ssl
         import certifi
 
         MONGO_URI = os.environ.get(
@@ -24,11 +25,17 @@ def get_client():
         )
 
         try:
+            # Create a relaxed SSL context for Vercel compatibility
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE  # ⚠️ disables cert validation (temporary)
+            context.options |= ssl.OP_LEGACY_SERVER_CONNECT  # allow legacy handshakes
+
             _client = MongoClient(
                 MONGO_URI,
                 server_api=ServerApi("1"),
-                tls=True,  # ✅ Required for Atlas
-                tlsCAFile=os.environ.get("SSL_CERT_FILE", certifi.where()),  # ✅ Use env var for Vercel
+                ssl=True,
+                ssl_context=context,
                 connectTimeoutMS=30000,
                 socketTimeoutMS=30000,
                 maxPoolSize=1,
@@ -36,7 +43,7 @@ def get_client():
 
             # Test the connection
             _client.admin.command("ping")
-            print("✅ MongoDB connection established successfully.")
+            print("✅ MongoDB connection established (insecure mode).")
 
         except (ConfigurationError, ConnectionFailure) as e:
             print(f"❌ MongoDB connection failed: {e}")
