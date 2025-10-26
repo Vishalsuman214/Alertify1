@@ -197,19 +197,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Loading spinner for submit button
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const btn = this;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
-            btn.disabled = true;
 
-            // Re-enable after 3 seconds (in case of error)
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }, 3000);
-        });
 
         // Particle effects
         function createParticle() {

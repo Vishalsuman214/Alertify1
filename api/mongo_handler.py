@@ -19,9 +19,11 @@ def get_client():
         import ssl
         import certifi
 
+        from urllib.parse import quote_plus
+
         MONGO_URI = os.environ.get(
             "MONGO_URI",
-            "mongodb://localhost:27017/"
+            f"mongodb+srv://Alertify:{quote_plus('Vishal@123')}@cluster0.fc7cyys.mongodb.net/?appName=Cluster0"
         )
 
         try:
