@@ -25,18 +25,28 @@ def get_client():
         )
 
         try:
-            _client = MongoClient(
-                MONGO_URI,
-                server_api=ServerApi("1"),
-                tls=True,
-                connectTimeoutMS=30000,
-                socketTimeoutMS=30000,
-                maxPoolSize=1,
-            )
+            if MONGO_URI.startswith("mongodb+srv://"):
+                # Atlas connection
+                _client = MongoClient(
+                    MONGO_URI,
+                    server_api=ServerApi("1"),
+                    tls=True,
+                    connectTimeoutMS=30000,
+                    socketTimeoutMS=30000,
+                    maxPoolSize=1,
+                )
+            else:
+                # Local connection
+                _client = MongoClient(
+                    MONGO_URI,
+                    connectTimeoutMS=30000,
+                    socketTimeoutMS=30000,
+                    maxPoolSize=1,
+                )
 
             # Test the connection
             _client.admin.command("ping")
-            print("✅ MongoDB connection established (insecure mode).")
+            print("✅ MongoDB connection established.")
 
         except (ConfigurationError, ConnectionFailure) as e:
             print(f"❌ MongoDB connection failed: {e}")
