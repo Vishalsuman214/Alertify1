@@ -23,7 +23,7 @@ def get_client():
 
         MONGO_URI = os.environ.get(
             "MONGO_URI",
-            f"mongodb+srv://Alertify:{quote_plus('Vishal@123')}@cluster0.fc7cyys.mongodb.net/?appName=Cluster0"
+            f"mongodb+srv://Vishal:{quote_plus('Vishal1234')}@cluster0.fc7cyys.mongodb.net/?appName=Cluster0"
         )
 
         try:
@@ -31,9 +31,8 @@ def get_client():
                 # Atlas connection
                 _client = MongoClient(
                     MONGO_URI,
-                    server_api=ServerApi("1"),
                     tls=True,
-                    tlsAllowInvalidCertificates=True,
+                    tlsCAFile=certifi.where(),
                     connectTimeoutMS=30000,
                     socketTimeoutMS=30000,
                     maxPoolSize=1,
