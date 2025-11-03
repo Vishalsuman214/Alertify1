@@ -6,4 +6,4 @@
 - [x] Ensure MongoDB connections work properly in serverless context in `api/mongo_handler.py`
 - [x] Add timeout handling for email sending in serverless environment in `api/email_service.py`
 - [x] Test the cron functionality locally
-- [ ] Commit all changes to git
+- [x] Commit all changes to git
