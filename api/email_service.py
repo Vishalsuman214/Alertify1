@@ -60,8 +60,8 @@ def send_reminder_email(receiver_email, reminder_title, reminder_description, re
         """
         msg.attach(MIMEText(body, 'plain'))
 
-        # Send email
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        # Send email with serverless-optimized timeout
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=15)  # Reduced timeout for serverless
         server.starttls()
         server.login(sender_email, sender_password)
         text = msg.as_string()
@@ -76,8 +76,17 @@ def send_reminder_email(receiver_email, reminder_title, reminder_description, re
         print(f"✅ Email sent successfully to {receiver_email}")
         return True
 
+    except smtplib.SMTPConnectError as e:
+        print(f"❌ SMTP Connection Error to {receiver_email}: {e}")
+        return False
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"❌ SMTP Authentication Error for {receiver_email}: {e}")
+        return False
+    except smtplib.SMTPException as e:
+        print(f"❌ SMTP Error sending to {receiver_email}: {e}")
+        return False
     except Exception as e:
-        print(f"❌ Error sending email to {receiver_email}: {e}")
+        print(f"❌ Unexpected error sending email to {receiver_email}: {e}")
         return False
 
 def send_test_email(sender_email, sender_password, test_recipient_email):

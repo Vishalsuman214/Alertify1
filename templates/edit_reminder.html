@@ -267,8 +267,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Loading spinner for submit button
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const btn = this;
+        document.querySelector('form').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
             btn.disabled = true;

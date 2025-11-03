@@ -92,9 +92,16 @@ def create_app():
     @app.route('/cron/reminders')
     def cron_reminders():
         print("🔄 Cron job /cron/reminders triggered")
-        check_and_send_reminders(app)
-        print("✅ Cron job /cron/reminders completed")
-        return 'Reminders checked', 200
+        try:
+            with app.app_context():
+                check_and_send_reminders(app)
+            print("✅ Cron job /cron/reminders completed successfully")
+            return 'Reminders checked successfully', 200
+        except Exception as e:
+            print(f"❌ Error in cron job /cron/reminders: {e}")
+            import traceback
+            traceback.print_exc()
+            return f'Error checking reminders: {str(e)}', 500
 
     # Register blueprints
     from api.auth import auth_bp

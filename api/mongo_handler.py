@@ -29,14 +29,17 @@ def get_client():
 
         try:
             if MONGO_URI.startswith("mongodb+srv://"):
-                # Atlas connection
+                # Atlas connection - optimized for serverless
                 _client = MongoClient(
                     MONGO_URI,
                     tls=True,
                     tlsCAFile=certifi.where(),
-                    connectTimeoutMS=30000,
-                    socketTimeoutMS=30000,
-                    maxPoolSize=1,
+                    connectTimeoutMS=15000,  # Reduced for serverless
+                    socketTimeoutMS=15000,   # Reduced for serverless
+                    maxPoolSize=1,           # Single connection for serverless
+                    maxIdleTimeMS=30000,     # Close idle connections quickly
+                    retryWrites=True,
+                    retryReads=True
                 )
             else:
                 # Local connection
@@ -139,8 +142,8 @@ def update_user_email_credentials(user_id, email, app_password):
             {'id': user_id},
             {'$set': {'email_credentials': email, 'app_password': app_password}}
         )
-        print(f"DEBUG: MongoDB update result: {result}, modified_count: {result.modified_count}", file=sys.stderr)
-        return result.modified_count > 0
+        print(f"DEBUG: MongoDB update result: {result}, matched_count: {result.matched_count}", file=sys.stderr)
+        return result.matched_count > 0
     except Exception as e:
         print(f"DEBUG: Exception in update_user_email_credentials: {e}", file=sys.stderr)
         return False
@@ -238,7 +241,7 @@ def update_reminder(reminder_id, title=None, description=None, reminder_time=Non
             {'id': reminder_id},
             {'$set': update_fields}
         )
-        return result.modified_count > 0
+        return result.matched_count > 0
     return False
 
 def delete_reminder(reminder_id):

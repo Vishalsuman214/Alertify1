@@ -1,12 +1,9 @@
-# TODO: Ensure Email Credentials are Visible and Not Removable
-## Tasks
-- [x] Modify `/email-credentials` route in `api/auth.py` to fetch and pass current email credentials to the template on GET requests.
-- [x] Update `templates/email_credentials.html` to pre-fill form inputs with current values and change app_password input to type "text" for visibility.
-
-# TODO: Fix Email Sending Issues
+# TODO: Fix Reminders Not Sending Properly on Vercel
 
 ## Tasks
-- [x] Analyze SMTP email sending functions in `api/auth.py` for timeout and authentication issues.
-- [x] Increase SMTP connection timeout and add better error handling.
-- [x] Implement SendGrid as primary email service with SMTP fallback.
-- [x] Test email sending after fixes - app restarted successfully.
+- [x] Fix `/cron/reminders` route in `api/index.py` to ensure proper Flask app context handling
+- [x] Add better error handling and logging to the cron route
+- [x] Ensure MongoDB connections work properly in serverless context in `api/mongo_handler.py`
+- [x] Add timeout handling for email sending in serverless environment in `api/email_service.py`
+- [x] Test the cron functionality locally
+- [ ] Commit all changes to git

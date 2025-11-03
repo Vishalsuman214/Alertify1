@@ -84,9 +84,12 @@ def edit_reminder(reminder_id):
             flash('Invalid date/time format')
             return redirect(url_for('reminders.edit_reminder', reminder_id=reminder_id))
         
-        # Update reminder using CSV
-        update_reminder(reminder_id, title, description, reminder_time, recipient_email, attachment)
-        flash('Reminder updated successfully!')
+        # Update reminder
+        success = update_reminder(reminder_id, title, description, reminder_time, recipient_email)
+        if success:
+            flash('Reminder updated successfully!')
+        else:
+            flash('Failed to update reminder. Please try again.', 'error')
         return redirect(url_for('reminders.dashboard'))
     
     reminder_time = datetime.strptime(reminder['reminder_time'], '%Y-%m-%d %H:%M:%S')
