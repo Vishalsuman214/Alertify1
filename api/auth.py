@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
+import sys
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash
 from flask_mail import Mail, Message
@@ -319,25 +320,61 @@ def reset_password_route():
 @login_required
 def email_credentials():
     from api.mongo_handler import update_user_email_credentials, get_user_by_id
+    print(f"DEBUG: Email credentials route called - Method: {request.method}", file=sys.stderr)
+    print(f"DEBUG: Current user authenticated: {current_user.is_authenticated}", file=sys.stderr)
+    print(f"DEBUG: Current user ID: {current_user.get_id()}", file=sys.stderr)
     user_data = get_user_by_id(current_user.get_id())
+    print(f"DEBUG: User data retrieved: {user_data}", file=sys.stderr)
     current_email = user_data.get('email_credentials', '') if user_data else ''
     current_app_password = user_data.get('app_password', '') if user_data else ''
+    print(f"DEBUG: Current credentials - email: '{current_email}', app_password: '{current_app_password}'", file=sys.stderr)
+
     if request.method == 'POST':
+        print("DEBUG: Processing POST request", file=sys.stderr)
         email = request.form.get('email')
         app_password = request.form.get('app_password')
+        print(f"DEBUG: Received form data - email: '{email}', app_password: '{app_password}'", file=sys.stderr)
         if email and app_password:
-            if update_user_email_credentials(current_user.get_id(), email, app_password):
+            print(f"DEBUG: Attempting to update credentials for user {current_user.get_id()}", file=sys.stderr)
+            result = update_user_email_credentials(current_user.get_id(), email, app_password)
+            print(f"DEBUG: Update result: {result}", file=sys.stderr)
+
+            # Verify the update by fetching again
+            updated_user_data = get_user_by_id(current_user.get_id())
+            updated_email = updated_user_data.get('email_credentials', '') if updated_user_data else ''
+            updated_app_password = updated_user_data.get('app_password', '') if updated_user_data else ''
+            print(f"DEBUG: After update - email: '{updated_email}', app_password: '{updated_app_password}'", file=sys.stderr)
+
+            if result:
                 flash('Email credentials updated successfully.', 'success')
                 current_email = email
                 current_app_password = app_password
+                print("DEBUG: Credentials updated successfully", file=sys.stderr)
             else:
                 flash('Failed to update email credentials.', 'error')
+                print("DEBUG: Failed to update credentials", file=sys.stderr)
+        else:
+            print("DEBUG: Email or app_password is empty", file=sys.stderr)
+            flash('Both email and app password are required.', 'error')
     return render_template('email_credentials.html', current_email=current_email, current_app_password=current_app_password)
 
 @auth_bp.route('/send-verification-email', methods=['POST'])
 @login_required
 def send_verification_email():
-    from api.mongo_handler import get_user_by_id
+    from api.mongo_handler import get_user_by_id, update_user_email_credentials
+
+    # First, save the credentials if provided in the form
+    email = request.form.get('email')
+    app_password = request.form.get('app_password')
+    if email and app_password:
+        print(f"DEBUG: Saving credentials before sending test email - email: {email}")
+        result = update_user_email_credentials(current_user.get_id(), email, app_password)
+        if result:
+            print("DEBUG: Credentials saved successfully before test email")
+        else:
+            print("DEBUG: Failed to save credentials before test email")
+
+    # Now get the user data (which should now include the saved credentials)
     user_data = get_user_by_id(current_user.get_id())
     if user_data and user_data.get('email_credentials') and user_data.get('app_password'):
         app_password = user_data['app_password']

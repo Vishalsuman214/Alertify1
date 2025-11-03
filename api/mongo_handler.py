@@ -5,6 +5,7 @@ import os
 import uuid
 import datetime
 import ssl
+import sys
 
 # Lazy MongoDB connection - no global connections established at import time
 _client = None
@@ -132,11 +133,17 @@ def update_user_bio(user_id, bio):
     return result.modified_count > 0
 
 def update_user_email_credentials(user_id, email, app_password):
-    result = get_users_collection().update_one(
-        {'id': user_id},
-        {'$set': {'email_credentials': email, 'app_password': app_password}}
-    )
-    return result.modified_count > 0
+    print(f"DEBUG: update_user_email_credentials called with user_id: {user_id}, email: {email}, app_password: {app_password}", file=sys.stderr)
+    try:
+        result = get_users_collection().update_one(
+            {'id': user_id},
+            {'$set': {'email_credentials': email, 'app_password': app_password}}
+        )
+        print(f"DEBUG: MongoDB update result: {result}, modified_count: {result.modified_count}", file=sys.stderr)
+        return result.modified_count > 0
+    except Exception as e:
+        print(f"DEBUG: Exception in update_user_email_credentials: {e}", file=sys.stderr)
+        return False
 
 def update_user_reminder_email(user_id, email):
     result = get_users_collection().update_one(
